@@ -12,7 +12,6 @@
 /.next/
 /out/
 # Add .env.local to your .gitignore file
-echo ".env.local" >> .gitignore
 # production
 /build
 
