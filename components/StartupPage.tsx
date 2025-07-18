@@ -139,7 +139,6 @@ export default function StartupPage() {
         <p className="text-gray-600 dark:text-gray-300">Manage and track your startup ventures and roles</p>
       </div>
 
-      
       {/* Startups Grid */}
       <div className="grid gap-6">
         {mockStartups.map((startup) => (
@@ -194,7 +193,14 @@ export default function StartupPage() {
                     </div>
                   </div>
                 </div>
-                
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

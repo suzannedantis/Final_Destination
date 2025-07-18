@@ -1,460 +1,428 @@
-'use client';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, BookOpen, Users, Calendar, Download, ExternalLink, Eye, TrendingUp, Tag, ChevronDown, ChevronUp, Moon, Sun, ArrowLeft } from 'lucide-react';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Plus, 
-  Calendar, 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  Edit,
-  Trash2,
-  FlaskConical,
-  Target,
-  BookOpen,
-  GitBranch,
-  Award,
-  ExternalLink
-} from 'lucide-react';
+interface ResearchPaper {
+  id: number;
+  title: string;
+  authors: string[];
+  abstract: string;
+  category: string;
+  year: number;
+  journal: string;
+  citations: number;
+  views: number;
+  downloads: number;
+  tags: string[];
+  type: string;
+  status: string;
+  impact: string;
+  pdfUrl: string;
+  externalUrl: string;
+}
 
-export default function ProjectPage() {
-  const [showAddProject, setShowAddProject] = useState(false);
-  const [projectForm, setProjectForm] = useState({
-    title: '',
-    status: '',
-    description: '',
-    category: '',
-    startDate: '',
-    endDate: '',
-    collaborators: '',
-    funding: '',
-    institution: '',
-    supervisor: '',
-    tags: [],
-    progress: 0
-  });
+const ResearchPapersPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [sortBy, setSortBy] = useState('relevance');
+  const [showFilters, setShowFilters] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [filteredPapers, setFilteredPapers] = useState<ResearchPaper[]>([]);
 
-  const mockProjects = [
+  // Sample research papers data
+  const researchPapers: ResearchPaper[] = [
     {
       id: 1,
-      title: 'AI-Powered Smart Agriculture System',
-      status: 'In Progress',
-      category: 'Research',
-      description: 'Developing machine learning algorithms for crop yield prediction and pest detection using IoT sensors and drone imagery. The system aims to optimize agricultural productivity while reducing environmental impact.',
-      startDate: '2024-01-15',
-      endDate: '2024-12-15',
-      collaborators: 5,
-      funding: '$50,000',
-      institution: 'IIT Mumbai',
-      supervisor: 'Dr. Rajesh Kumar',
-      tags: ['AI', 'IoT', 'Agriculture', 'Machine Learning', 'Sustainability'],
-      progress: 75,
-      publications: 2,
-      patents: 1
+      title: "Advancing Artificial Intelligence in Healthcare: A Comprehensive Review of Machine Learning Applications",
+      authors: ["Dr. Sarah Chen", "Prof. Michael Rodriguez", "Dr. Priya Patel"],
+      abstract: "This paper explores the transformative potential of artificial intelligence in healthcare, focusing on machine learning applications that are revolutionizing diagnosis, treatment planning, and patient care. We present a comprehensive analysis of current AI implementations across various medical domains.",
+      category: "Artificial Intelligence",
+      year: 2024,
+      journal: "Journal of Medical AI",
+      citations: 127,
+      views: 1543,
+      downloads: 892,
+      tags: ["AI", "Healthcare", "Machine Learning", "Medical Diagnosis"],
+      type: "Research Paper",
+      status: "Published",
+      impact: "High",
+      pdfUrl: "#",
+      externalUrl: "#"
     },
     {
       id: 2,
-      title: 'Sustainable Energy Storage Solutions',
-      status: 'Completed',
-      category: 'Research',
-      description: 'Research on advanced battery technologies using eco-friendly materials for renewable energy storage. Successfully developed a prototype with 30% improved efficiency.',
-      startDate: '2023-08-01',
-      endDate: '2024-02-28',
-      collaborators: 8,
-      funding: '$75,000',
-      institution: 'IIT Delhi',
-      supervisor: 'Dr. Priya Sharma',
-      tags: ['Battery Tech', 'Renewable Energy', 'Materials Science', 'Sustainability'],
-      progress: 100,
-      publications: 3,
-      patents: 2
+      title: "Blockchain Technology for Secure Financial Transactions: Implementation and Performance Analysis",
+      authors: ["Dr. James Wilson", "Prof. Lisa Zhang", "Alex Thompson"],
+      abstract: "An in-depth analysis of blockchain technology applications in financial services, examining security protocols, transaction efficiency, and scalability challenges. This study provides practical insights for fintech implementation.",
+      category: "Blockchain",
+      year: 2024,
+      journal: "FinTech Research Quarterly",
+      citations: 89,
+      views: 2156,
+      downloads: 1234,
+      tags: ["Blockchain", "FinTech", "Security", "Cryptocurrency"],
+      type: "Research Paper",
+      status: "Published",
+      impact: "High",
+      pdfUrl: "#",
+      externalUrl: "#"
     },
     {
       id: 3,
-      title: 'Blockchain-Based Supply Chain Management',
-      status: 'Planning',
-      category: 'Project',
-      description: 'Designing a transparent and secure supply chain management system using blockchain technology to ensure product authenticity and traceability.',
-      startDate: '2024-03-01',
-      endDate: '2024-11-30',
-      collaborators: 3,
-      funding: '$25,000',
-      institution: 'IIT Bombay',
-      supervisor: 'Prof. Amit Patel',
-      tags: ['Blockchain', 'Supply Chain', 'Security', 'Transparency'],
-      progress: 20,
-      publications: 0,
-      patents: 0
+      title: "Sustainable Energy Solutions: IoT-Enabled Smart Grid Management",
+      authors: ["Dr. Elena Rodriguez", "Prof. David Kim", "Maria Santos"],
+      abstract: "This research investigates the integration of Internet of Things (IoT) technologies in smart grid systems to optimize energy distribution and reduce carbon footprint. We present novel algorithms for real-time energy management.",
+      category: "IoT",
+      year: 2023,
+      journal: "Sustainable Technology Review",
+      citations: 156,
+      views: 1876,
+      downloads: 967,
+      tags: ["IoT", "Smart Grid", "Sustainability", "Energy Management"],
+      type: "Research Paper",
+      status: "Published",
+      impact: "Medium",
+      pdfUrl: "#",
+      externalUrl: "#"
     },
     {
       id: 4,
-      title: 'Mental Health Monitoring App',
-      status: 'In Progress',
-      category: 'Project',
-      description: 'Mobile application for continuous mental health monitoring using sentiment analysis and behavioral pattern recognition to provide early intervention support.',
-      startDate: '2023-11-10',
-      endDate: '2024-06-30',
-      collaborators: 4,
-      funding: '$30,000',
-      institution: 'AIIMS Delhi',
-      supervisor: 'Dr. Meera Joshi',
-      tags: ['Mental Health', 'Mobile App', 'AI', 'Healthcare', 'Sentiment Analysis'],
-      progress: 60,
-      publications: 1,
-      patents: 0
+      title: "Quantum Computing Applications in Cryptography: Future Implications",
+      authors: ["Prof. Robert Chen", "Dr. Amanda Foster"],
+      abstract: "An exploration of quantum computing's impact on modern cryptography, analyzing potential vulnerabilities and proposing quantum-resistant encryption methods for future digital security.",
+      category: "Quantum Computing",
+      year: 2024,
+      journal: "Quantum Research Letters",
+      citations: 73,
+      views: 1287,
+      downloads: 645,
+      tags: ["Quantum Computing", "Cryptography", "Security", "Encryption"],
+      type: "Research Paper",
+      status: "Published",
+      impact: "High",
+      pdfUrl: "#",
+      externalUrl: "#"
+    },
+    {
+      id: 5,
+      title: "Biotechnology Innovations in Drug Discovery: AI-Powered Molecular Design",
+      authors: ["Dr. Jennifer Wang", "Prof. Mark Thompson", "Dr. Rahul Sharma"],
+      abstract: "This study examines the role of artificial intelligence in accelerating drug discovery processes, focusing on molecular design and predictive modeling for pharmaceutical development.",
+      category: "Biotechnology",
+      year: 2023,
+      journal: "Biotech Innovation Today",
+      citations: 198,
+      views: 2341,
+      downloads: 1456,
+      tags: ["Biotechnology", "Drug Discovery", "AI", "Molecular Design"],
+      type: "Research Paper",
+      status: "Published",
+      impact: "High",
+      pdfUrl: "#",
+      externalUrl: "#"
+    },
+    {
+      id: 6,
+      title: "EdTech Revolution: Personalized Learning through Data Analytics",
+      authors: ["Dr. Sophie Miller", "Prof. Carlos Rodriguez"],
+      abstract: "An investigation into how educational technology is transforming learning experiences through personalized approaches, leveraging data analytics to improve student outcomes and engagement.",
+      category: "EdTech",
+      year: 2024,
+      journal: "Educational Technology Research",
+      citations: 67,
+      views: 1432,
+      downloads: 789,
+      tags: ["EdTech", "Personalized Learning", "Data Analytics", "Education"],
+      type: "Research Project",
+      status: "Ongoing",
+      impact: "Medium",
+      pdfUrl: "#",
+      externalUrl: "#"
     }
   ];
 
-  const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      'Planning': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      'In Progress': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      'Completed': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      'On Hold': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-      'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-  };
+  const categories = [
+    'all', 'Artificial Intelligence', 'Blockchain', 'IoT', 'Quantum Computing', 
+    'Biotechnology', 'EdTech', 'Cybersecurity', 'Robotics', 'Data Science'
+  ];
 
-  const getStatusIcon = (status: string) => {
-    const icons: { [key: string]: React.ReactNode } = {
-      'Planning': <AlertCircle className="w-4 h-4" />,
-      'In Progress': <Clock className="w-4 h-4" />,
-      'Completed': <CheckCircle className="w-4 h-4" />,
-      'On Hold': <AlertCircle className="w-4 h-4" />,
-      'Cancelled': <AlertCircle className="w-4 h-4" />
-    };
-    return icons[status] || <Clock className="w-4 h-4" />;
-  };
+  const years = ['all', '2024', '2023', '2022', '2021', '2020'];
 
-  const getCategoryIcon = (category: string) => {
-    return category === 'Research' ? <FlaskConical className="w-5 h-5" /> : <Target className="w-5 h-5" />;
-  };
+  useEffect(() => {
+    filterPapers();
+  }, [searchQuery, selectedCategory, selectedYear, sortBy]);
 
-  const handleAddProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission here
-    console.log('Adding project:', projectForm);
-    setShowAddProject(false);
-    // Reset form
-    setProjectForm({
-      title: '',
-      status: '',
-      description: '',
-      category: '',
-      startDate: '',
-      endDate: '',
-      collaborators: '',
-      funding: '',
-      institution: '',
-      supervisor: '',
-      tags: [],
-      progress: 0
+  const filterPapers = () => {
+    let filtered = researchPapers.filter(paper => {
+      const matchesSearch = paper.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          paper.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                          paper.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          paper.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchesCategory = selectedCategory === 'all' || paper.category === selectedCategory;
+      const matchesYear = selectedYear === 'all' || paper.year.toString() === selectedYear;
+      
+      return matchesSearch && matchesCategory && matchesYear;
     });
+
+    // Sort papers
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'citations':
+          return b.citations - a.citations;
+        case 'views':
+          return b.views - a.views;
+        case 'year':
+          return b.year - a.year;
+        case 'title':
+          return a.title.localeCompare(b.title);
+        default: // relevance
+          return b.citations - a.citations;
+      }
+    });
+
+    setFilteredPapers(filtered);
+  };
+
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'High': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Published': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'Ongoing': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+    }
+  };
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Projects & Research</h1>
-        <p className="text-gray-600 dark:text-gray-300">Track your research projects, academic work, and innovation initiatives</p>
-      </div>
-
-      {/* Projects Grid */}
-      <div className="grid gap-6">
-        {mockProjects.map((project) => (
-          <Card key={project.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-purple-500">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-4 flex-1">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center text-white">
-                    {getCategoryIcon(project.category)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <CardTitle className="text-xl">{project.title}</CardTitle>
-                      <Badge variant="outline" className="text-xs">
-                        {project.category}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(project.startDate).toLocaleDateString()} - {new Date(project.endDate).toLocaleDateString()}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        {project.collaborators} collaborators
-                      </div>
-                      <div className="flex items-center">
-                        <BookOpen className="w-4 h-4 mr-1" />
-                        {project.institution}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center">
-                        <Target className="w-4 h-4 mr-1" />
-                        Supervisor: {project.supervisor}
-                      </div>
-                      <div className="flex items-center">
-                        <Award className="w-4 h-4 mr-1" />
-                        {project.publications} publications, {project.patents} patents
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end space-y-2">
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(project.status)}
-                    <Badge className={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+        {/* Header */}
+        <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Research Papers & Projects</h1>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">{project.description}</p>
-              
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">{project.progress}%</span>
-                </div>
-                <Progress value={project.progress} className="h-2" />
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {project.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-
-              {/* Additional Info */}
-              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center space-x-4">
-                  <span>Funding: {project.funding}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    View Details
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {/* Add Project Card */}
-        <Dialog open={showAddProject} onOpenChange={setShowAddProject}>
-          <DialogTrigger asChild>
-            <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500 transition-colors cursor-pointer">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mb-4">
-                  <Plus className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Add Project / Research</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-center">
-                  Document your research projects, academic work, or innovation initiatives
-                </p>
-              </CardContent>
-            </Card>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center space-x-2">
-                <FlaskConical className="w-5 h-5" />
-                <span>Add New Project / Research</span>
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAddProject} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="project-title">Project Title *</Label>
-                  <Input
-                    id="project-title"
-                    placeholder="Enter project title"
-                    value={projectForm.title}
-                    onChange={(e) => setProjectForm({...projectForm, title: e.target.value})}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="project-category">Category *</Label>
-                  <Select value={projectForm.category} onValueChange={(value) => setProjectForm({...projectForm, category: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Research">Research</SelectItem>
-                      <SelectItem value="Project">Project</SelectItem>
-                      <SelectItem value="Thesis">Thesis</SelectItem>
-                      <SelectItem value="Innovation">Innovation</SelectItem>
-                      <SelectItem value="Consultancy">Consultancy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="project-status">Status *</Label>
-                  <Select value={projectForm.status} onValueChange={(value) => setProjectForm({...projectForm, status: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Planning">Planning</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
-                      <SelectItem value="On Hold">On Hold</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="project-progress">Progress (%)</Label>
-                  <Input
-                    id="project-progress"
-                    type="number"
-                    min="0"
-                    max="100"
-                    placeholder="0-100"
-                    value={projectForm.progress}
-                    onChange={(e) => setProjectForm({...projectForm, progress: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="project-description">Description *</Label>
-                <Textarea
-                  id="project-description"
-                  placeholder="Describe your project, its objectives, methodology, and expected outcomes..."
-                  value={projectForm.description}
-                  onChange={(e) => setProjectForm({...projectForm, description: e.target.value})}
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="project-start-date">Start Date</Label>
-                  <Input
-                    id="project-start-date"
-                    type="date"
-                    value={projectForm.startDate}
-                    onChange={(e) => setProjectForm({...projectForm, startDate: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="project-end-date">End Date</Label>
-                  <Input
-                    id="project-end-date"
-                    type="date"
-                    value={projectForm.endDate}
-                    onChange={(e) => setProjectForm({...projectForm, endDate: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="project-institution">Institution</Label>
-                  <Input
-                    id="project-institution"
-                    placeholder="Your institution or organization"
-                    value={projectForm.institution}
-                    onChange={(e) => setProjectForm({...projectForm, institution: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="project-supervisor">Supervisor/Mentor</Label>
-                  <Input
-                    id="project-supervisor"
-                    placeholder="Project supervisor or mentor"
-                    value={projectForm.supervisor}
-                    onChange={(e) => setProjectForm({...projectForm, supervisor: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="project-collaborators">Number of Collaborators</Label>
-                  <Input
-                    id="project-collaborators"
-                    type="number"
-                    placeholder="Number of team members"
-                    value={projectForm.collaborators}
-                    onChange={(e) => setProjectForm({...projectForm, collaborators: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="project-funding">Funding Amount</Label>
-                  <Input
-                    id="project-funding"
-                    placeholder="e.g., $10,000, ₹5,00,000, Grant funded"
-                    value={projectForm.funding}
-                    onChange={(e) => setProjectForm({...projectForm, funding: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <Button type="button" variant="outline" onClick={() => setShowAddProject(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Add Project
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Empty State */}
-      {mockProjects.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FlaskConical className="w-12 h-12 text-gray-400" />
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No projects yet</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Start documenting your research and project work
-          </p>
-          <Button onClick={() => setShowAddProject(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Your First Project
-          </Button>
+        </header>
+
+        {/* Search and Filters */}
+        <div className="container mx-auto px-4 py-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+            {/* Search Bar */}
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search papers, authors, keywords..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+
+            {/* Filter Toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+              >
+                <Filter className="h-4 w-4" />
+                <span>Filters</span>
+                {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {filteredPapers.length} papers found
+              </div>
+            </div>
+
+            {/* Filters */}
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category}>
+                        {category === 'all' ? 'All Categories' : category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    {years.map(year => (
+                      <option key={year} value={year}>
+                        {year === 'all' ? 'All Years' : year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort By</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="relevance">Relevance</option>
+                    <option value="citations">Citations</option>
+                    <option value="views">Views</option>
+                    <option value="year">Year</option>
+                    <option value="title">Title</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('all');
+                      setSelectedYear('all');
+                      setSortBy('relevance');
+                    }}
+                    className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Research Papers List */}
+          <div className="space-y-6">
+            {filteredPapers.map((paper) => (
+              <div
+                key={paper.id}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+              >
+                <div className="p-6">
+                  {/* Paper Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+                        {paper.title}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        <div className="flex items-center space-x-1">
+                          <Users className="h-4 w-4" />
+                          <span>{paper.authors.join(', ')}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>{paper.year}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{paper.journal}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status and Impact Badges */}
+                  <div className="flex items-center space-x-2 mb-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(paper.status)}`}>
+                      {paper.status}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getImpactColor(paper.impact)}`}>
+                      {paper.impact} Impact
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                      {paper.type}
+                    </span>
+                  </div>
+
+                  {/* Abstract */}
+                  <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+                    {paper.abstract}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {paper.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-md text-xs font-medium"
+                      >
+                        <Tag className="h-3 w-3 inline mr-1" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Stats and Actions */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center space-x-1">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>{paper.citations} citations</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{paper.views.toLocaleString()} views</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Download className="h-4 w-4" />
+                        <span>{paper.downloads.toLocaleString()} downloads</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button className="flex items-center space-x-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors text-sm">
+                        <Download className="h-4 w-4" />
+                        <span>PDF</span>
+                      </button>
+                      <button className="flex items-center space-x-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+                        <ExternalLink className="h-4 w-4" />
+                        <span>View</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* No Results */}
+          {filteredPapers.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No papers found</h3>
+              <p className="text-gray-600 dark:text-gray-400">Try adjusting your search terms or filters</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default ResearchPapersPage;
