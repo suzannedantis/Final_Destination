@@ -1,10 +1,12 @@
 # Final_Destination
 Leader-Suzanne Dantis
+
 Members-
-Omkar Kadam
-Arvind Yadav
+Omkar Kadam,
+Arvind Yadav,
 Yogesh Ghadge
-Domain-Education
+
+Domain - Education
 
 Problem Statement-
 The current systems for managing research, intellectual property rights (IPR),
