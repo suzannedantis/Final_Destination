@@ -733,14 +733,6 @@ export default function Home() {
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
             Join thousands of innovators already using StartLink to accelerate their success
           </p>
-          <div className="flex justify-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Github className="w-4 h-4 mr-2" /> Open Source
-            </Button>
-            <Button variant="outline" size="sm">
-              <Linkedin className="w-4 h-4 mr-2" /> Professional Network
-            </Button>
-          </div>
         </div>
       </main>
 
@@ -755,7 +747,7 @@ export default function Home() {
               <span className="font-semibold text-gray-900 dark:text-white">StartLink</span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              © 2025 StartLink. Accelerating innovation through collaboration.
+              Accelerating innovation through collaboration
             </p>
           </div>
         </div>

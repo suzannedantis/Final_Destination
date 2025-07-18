@@ -1,5 +1,5 @@
 'use client';
-import { UserProfile } from '@/app/page';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun, LogOut, Zap } from 'lucide-react';
@@ -11,7 +11,6 @@ import ProjectPage from '@/components/ProjectPage';
 
 interface DashboardProps {
   onLogout: () => void;
-  user: UserProfile | null;
 }
 
 export default function Dashboard({ onLogout }: DashboardProps) {
