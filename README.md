@@ -1,14 +1,14 @@
 # Final_Destination
-Leader-Suzanne Dantis
+Leader - Suzanne Dantis
 
-Members-
+Members -
 Omkar Kadam,
 Arvind Yadav,
 Yogesh Ghadge
 
 Domain - Education
 
-Problem Statement-
+Problem Statement -
 The current systems for managing research, intellectual property rights (IPR),
 innovation activities, and start-up growth are fragmented and inefficient.
 Information is scattered across various departments and platforms, resulting in
