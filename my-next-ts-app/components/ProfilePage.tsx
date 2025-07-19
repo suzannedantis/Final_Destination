@@ -479,7 +479,15 @@ export default function ProfilePage({ userId = "1" }: ProfilePageProps) {
         <CardContent className="pt-6">
           <div className="flex items-start space-x-6">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              
+              {userData?.profile_pic ? (
+                <img
+                  src={userData.profile_pic}
+                  alt={userData.full_name}
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <UserCircle className="w-12 h-12 text-white" />
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between mb-4">
