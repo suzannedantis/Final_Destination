@@ -8,6 +8,7 @@ import AddIPRForm, { IPRFormData } from './ipr/AddIPRForm';
 import StepsModal from './ipr/StepsModal';
 import HelpSection from './ipr/HelpSection';
 import DeleteConfirmModal from './ipr/DeleteConfirmModal';
+import PatentApplicationForm from './ipr/Form1';
 
 interface IPRFiling {
   id: string;
@@ -38,7 +39,7 @@ export default function IPRFilingPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteIPRId, setDeleteIPRId] = useState<string | null>(null);
   const [showHelpSection, setShowHelpSection] = useState(false);
-
+  const [showForm1, setShowForm1] = useState(false);
   // Mock data - this will be replaced with API calls
   const [mockIPRFilings, setMockIPRFilings] = useState<IPRFiling[]>([
     {
@@ -142,10 +143,10 @@ export default function IPRFilingPage() {
 
     const updatedIPR = { ...selectedIPR };
     const stepIndex = updatedIPR.steps.findIndex(step => step.id === stepId);
-    
+
     if (stepIndex !== -1) {
       updatedIPR.steps[stepIndex].completed = completed;
-      
+
       // Update progress and current step
       const completedSteps = updatedIPR.steps.filter(step => step.completed).length;
       updatedIPR.progress = Math.round((completedSteps / updatedIPR.steps.length) * 100);
@@ -153,10 +154,10 @@ export default function IPRFilingPage() {
       updatedIPR.lastUpdated = new Date().toISOString().split('T')[0];
 
       // Update in the main array
-      setMockIPRFilings(mockIPRFilings.map(ipr => 
+      setMockIPRFilings(mockIPRFilings.map(ipr =>
         ipr.id === selectedIPR.id ? updatedIPR : ipr
       ));
-      
+
       setSelectedIPR(updatedIPR);
     }
   };
@@ -190,79 +191,124 @@ export default function IPRFilingPage() {
             <p className="text-gray-600 dark:text-gray-300">Track and manage your intellectual property filing process</p>
           </div>
           <div className="flex space-x-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowHelpSection(!showHelpSection)}
               className="flex items-center space-x-2"
             >
               <HelpCircle className="w-4 h-4" />
               <span>Help & FAQs</span>
             </Button>
-            <Button 
-              onClick={() => setShowAddIPR(true)}
+            {/* <Button
+              onClick={() => setShowPatentForm(true)}
               className="flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Add New IPR Filing</span>
-            </Button>
+              <span>File an IPR</span>
+            </Button> */}
           </div>
         </div>
       </div>
 
       {/* Help Section */}
-      <HelpSection 
-        isVisible={showHelpSection} 
-        onClose={() => setShowHelpSection(false)} 
+      <HelpSection
+        isVisible={showHelpSection}
+        onClose={() => setShowHelpSection(false)}
       />
 
-      {/* IPR Filings Grid */}
-      <div className="grid gap-6">
-        {mockIPRFilings.map((ipr) => (
-          <IPRCard
-            key={ipr.id}
-            ipr={ipr}
-            onViewSteps={handleViewSteps}
-            onDelete={handleDeleteIPR}
-          />
-        ))}
+      {/* Process Table - Added below help section */}
+      <div className="mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-20">
+                  Sr. No.
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Process Title
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-40">
+                  Download Form
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-32">
+                  Fill Form
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-center">
+                  1
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 font-medium">
+                  The First Schedule Fees
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
+                  <div className="flex flex-col space-y-2">
+                    <a
+                      href="/Fees.pdf"
+                      download="Fees.pdf"
+                      className="inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors duration-200 w-fit mx-auto"
+                    >
+                      📄 Fees
+                    </a>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
+                  -
+                </td>
+              </tr>
+              <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white text-center">
+                  2
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 font-medium">
+                  Form 1
+                </td>
 
-        {/* Empty State */}
-        {mockIPRFilings.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-12 h-12 text-gray-400" />
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
+                  <div className="flex flex-col space-y-2">
+                    <a
+                      href="/Form 1.pdf"
+                      download="Form 1.pdf"
+                      className="inline-block px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors duration-200 w-fit mx-auto"
+                    >
+                      📄 Form 1
+                    </a>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900"
+                    onClick={() => setShowForm1(true)}
+                  >
+                    Form 1
+                  </Button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {showForm1 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-4 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
+              <button
+                onClick={() => setShowForm1(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+              <PatentApplicationForm />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No IPR filings yet</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Start protecting your intellectual property by filing your first IPR
-            </p>
-            <Button onClick={() => setShowAddIPR(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First IPR Filing
-            </Button>
           </div>
         )}
       </div>
 
-      {/* Modals */}
-      <AddIPRForm
-        isOpen={showAddIPR}
-        onClose={() => setShowAddIPR(false)}
-        onSubmit={handleAddIPR}
-      />
+      {/* Rest of your existing content would go here */}
 
-      <StepsModal
-        isOpen={showStepsModal}
-        onClose={() => setShowStepsModal(false)}
-        ipr={selectedIPR}
-        onUpdateStep={handleUpdateStep}
-      />
-
-      <DeleteConfirmModal
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={confirmDelete}
-      />
     </div>
   );
 }
