@@ -1,103 +1,167 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CheckCircle, Users2, BookOpen, User, ExternalLink } from 'lucide-react';
+import { getAllStartups } from '@/lib/startupService';
+import {
+  Calendar,
+  Trophy,
+  Loader2
+} from 'lucide-react';
 
-const projects = [
-  {
-    title: 'Nexus: Smart Home IoT Ecosystem',
-    year: 2023,
-    contributors: ['David Park'],
-    publisher: 'Times of India',
-    author: 'Suzanne',
-    description: 'Smart City Innovation Excellence Award By InnovateLab',
-    document: '#',
-    tags: ['Internet of Things', 'Research Paper', 'Smart Home'],
-    status: 'Idea',
-  },
-  {
-    title: 'Zero: An Open-Source Legged Robot Dog',
-    year: 2024,
-    contributors: ['Yash Hingu', 'Arvind Yadav'],
-    publisher: 'Atharva Awards for Excellence in Education',
-    author: 'Suzanne',
-    description:
-      'Zero is a low-cost, open-source quadruped robot designed to introduce students and makers to legged locomotion. It combines a custom CAD design, simplified inverse kinematics, and PS2 controller integration.',
-    document: '#',
-    tags: ['Robotics', 'Open Source', 'STEM'],
-    status: 'Idea',
-  },
-];
+interface Startup {
+  id: number;
+  name: string;
+  idea_summary: string;
+  stage: string;
+  funding_status: string;
+  website: string;
+  pitch_deck_url: string;
+  registered_on: string;
+}
 
-export default function ProjectsPage() {
+export default function StartupPage() {
+  const [startups, setStartups] = useState<Startup[]>([]);
+  const [loadingSummary, setLoadingSummary] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchStartups();
+  }, []);
+
+  const fetchStartups = async () => {
+    try {
+      const allStartups = await getAllStartups();
+      setStartups(allStartups);
+    } catch (error) {
+      console.error("Error fetching startups:", error);
+    }
+  };
+
+  const getStageColor = (stage: string) => {
+    const colors: { [key: string]: string } = {
+      'Idea': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+      'Prototype': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'MVP': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      'Seed': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      'Series A': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+      'Series B': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+      'Growth Stage': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
+      'Ideation': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+      'MVP Development': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      'Pre-Seed': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+      'Seed Funding': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+    };
+    return colors[stage] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  };
+
+  const handleSummarizeStartup = async (startup: Startup) => {
+    setLoadingSummary(startup.id);
+    
+    try {
+      const response = await fetch('/api/summarize-startup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: startup.name,
+          idea_summary: startup.idea_summary,
+          stage: startup.stage,
+          funding_status: startup.funding_status,
+          website: startup.website,
+          registered_on: startup.registered_on
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Show specific error message from the API
+        alert(`Error: ${data.error || 'Failed to summarize startup'}`);
+        return;
+      }
+      
+      // Show the summary in an alert for now (you can replace this with a modal later)
+      alert(`Startup Summary:\n\n${data.summary}`);
+      
+    } catch (error) {
+      console.error('Error summarizing startup:', error);
+      alert('Network error: Failed to connect to the summarization service. Please check your internet connection and try again.');
+    } finally {
+      setLoadingSummary(null);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-[#f7faff] to-[#e3f2fd] py-12 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2 text-gray-900">Projects & Research</h1>
-        <p className="text-gray-500 mb-8 text-md">
-          Explore research projects and academic contributions from the startup community.
-        </p>
+    <div className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">All Startups</h1>
+        <p className="text-gray-600 dark:text-gray-300">Discover and explore startup ventures from our community</p>
+      </div>
 
-        <div className="space-y-6">
-          {projects.map((project, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <Card className="p-5 bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 text-green-700">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="font-semibold text-lg">{project.title}</span>
+      {/* Startups Grid */}
+      <div className="space-y-6">
+        {startups.map((startup) => (
+          <Card key={startup.id} className="hover:shadow-lg transition-shadow duration-200">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg mb-2">{startup.name}</CardTitle>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      Registered on {new Date(startup.registered_on).toLocaleDateString()}
                     </div>
-                    <div className="text-sm text-gray-500 flex flex-wrap items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" /> Registered {new Date().toLocaleDateString('en-GB')}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users2 className="h-4 w-4" /> {project.status} – Bootstrapped
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ExternalLink className="h-4 w-4" /> Website
-                      </span>
+                    <div className="flex items-center">
+                      <Trophy className="w-4 h-4 mr-1" />
+                      {startup.funding_status}
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {project.description}
-                    </p>
-                    <a
-                      href={project.document}
-                      target="_blank"
-                      className="text-green-700 text-sm font-medium flex items-center gap-1 hover:underline"
-                    >
-                      <BookOpen className="h-4 w-4" /> View Pitch Deck
-                    </a>
-                  </div>
-
-                  <div className="flex flex-col items-end justify-between">
-                    <Badge className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-                      {project.status}
-                    </Badge>
                   </div>
                 </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {project.tags.map((tag, i) => (
-                    <Badge key={i} className="rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
+                <div className="flex items-center space-x-2">
+                  <Badge className={getStageColor(startup.stage)}>
+                    {startup.stage}
+                  </Badge>
                 </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">{startup.idea_summary}</p>
+              {/* <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleSummarizeStartup(startup)}
+                  disabled={loadingSummary === startup.id}
+                >
+                  {loadingSummary === startup.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Summarizing...
+                    </>
+                  ) : (
+                    'Summarize Startup'
+                  )}
+                </Button>
+              </div> */}
+            </CardContent>
+          </Card>
+        ))}
+
+        {startups.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No startups yet</h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Check back later for startup ventures from our community
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
